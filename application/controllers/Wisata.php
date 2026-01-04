@@ -10,10 +10,19 @@ class Wisata extends CI_Controller {
         $this->load->library('session');
     }
 
-    // --- HALAMAN UTAMA ---
+    // --- HALAMAN UTAMA (BERANDA) + PENCARIAN ---
     public function index()
     {
-        $data['wisata'] = $this->Wisata_model->get_all_wisata();
+        // Ambil input pencarian dari user (jika ada)
+        $keyword = $this->input->post('keyword');
+
+        // Panggil model dengan membawa keyword tadi
+        // Note: Pastikan kamu update juga Wisata_model->get_all_wisata() agar menerima parameter ini
+        $data['wisata'] = $this->Wisata_model->get_all_wisata($keyword);
+        
+        // Kita kirim balik keywordnya ke view supaya teks di kotak pencarian tidak hilang
+        $data['keyword'] = $keyword;
+
         $this->load->view('beranda_view', $data);
     }
 
@@ -63,10 +72,7 @@ class Wisata extends CI_Controller {
         if($this->session->userdata('role') != 'admin') redirect('wisata');
 
         $config['upload_path']   = './assets/img/';
-        
-        // JURUS PINTAS: Bolehkan semua tipe file biar gak error pas presentasi
-        $config['allowed_types'] = '*'; 
-        
+        $config['allowed_types'] = '*'; // JURUS PINTAS
         $config['file_name']     = time() . '_' . $_FILES['gambar']['name']; 
 
         $this->load->library('upload', $config);
@@ -111,21 +117,18 @@ class Wisata extends CI_Controller {
         
         // Data dasar
         $data = array(
-            'nama'              => $this->input->post('nama'),
-            'lokasi'            => $this->input->post('lokasi'),
-            'kategori'          => $this->input->post('kategori'),
-            'deskripsi'         => $this->input->post('deskripsi'),
-            'harga_domestik'    => $this->input->post('harga')
+            'nama'           => $this->input->post('nama'),
+            'lokasi'         => $this->input->post('lokasi'),
+            'kategori'       => $this->input->post('kategori'),
+            'deskripsi'      => $this->input->post('deskripsi'),
+            'harga_domestik' => $this->input->post('harga')
         );
 
         // LOGIKA GANTI GAMBAR
         if (!empty($_FILES['gambar']['name'])) {
             
             $config['upload_path']   = './assets/img/';
-            
-            // JURUS PINTAS: Bolehkan semua tipe file
             $config['allowed_types'] = '*'; 
-            
             $config['file_name']     = time() . '_' . $_FILES['gambar']['name'];
 
             $this->load->library('upload', $config);
@@ -135,7 +138,6 @@ class Wisata extends CI_Controller {
                 $upload_data = $this->upload->data();
                 $data['gambar'] = $upload_data['file_name'];
             } else {
-                // Tampilkan error jika masih gagal (biasanya karena folder belum dibuat)
                 echo "<h3>Upload Gagal!</h3>";
                 echo "Pastikan folder <b>assets/img</b> sudah ada.<br><br>";
                 echo $this->upload->display_errors();

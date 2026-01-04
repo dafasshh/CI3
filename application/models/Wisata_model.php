@@ -4,8 +4,19 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 class Wisata_model extends CI_Model { // Perhatikan: Ini extends CI_Model
 
     // 1. Ambil Semua Data Wisata (Untuk Beranda)
-    public function get_all_wisata()
+    // 1. Ambil Data Wisata (Bisa Semua, Bisa Pencarian)
+    public function get_all_wisata($keyword = null)
     {
+        if ($keyword) {
+            // Jika ada keyword, cari berdasarkan Nama ATAU Lokasi
+            $this->db->like('nama', $keyword);
+            $this->db->or_like('lokasi', $keyword);
+            $this->db->or_like('kategori', $keyword);
+        }
+        
+        // Urutkan dari yang terbaru (opsional)
+        // $this->db->order_by('id', 'DESC'); 
+        
         return $this->db->get('destinasi')->result_array();
     }
 
